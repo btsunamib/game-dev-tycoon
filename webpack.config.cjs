@@ -30,7 +30,7 @@ module.exports = (env, argv) => {
         : isSingleHtml
           ? 'js/[name].js'
           : isProduction
-            ? 'js/[name].[contenthash:8].js'
+            ? 'js/app.js'
             : 'js/[name].js',
       // 生产模式使用相对路径，兼容 GitHub Pages 子目录部署
       publicPath: isProduction ? './' : '/',
@@ -113,6 +113,8 @@ module.exports = (env, argv) => {
       new HtmlWebpackPlugin({
         // CDN模式使用专用模板，不注入JS（模板中已有硬编码的CDN和GitHub Pages链接）
         template: isCDN ? './index.cdn.html' : './index.html',
+        // 单HTML模式输出为独立文件名，方便酒馆使用
+        filename: isSingleHtml ? 'game-dev-tycoon-standalone.html' : 'index.html',
         title: 'AI游戏开发商模拟器',
         inject: isCDN ? false : 'body',
         // 单HTML模式下不压缩HTML中的内联脚本（避免潜在问题）
@@ -143,7 +145,7 @@ module.exports = (env, argv) => {
       ...(isProduction && !isSingleHtml && !isCDN
         ? [
             new MiniCssExtractPlugin({
-              filename: 'css/[name].[contenthash:8].css',
+              filename: 'css/app.css',
             }),
           ]
         : []),

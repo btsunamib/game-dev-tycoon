@@ -8,6 +8,8 @@
   "scripts": {
     "build": "webpack --config webpack.config.cjs --mode production",
     "build:single": "set BUILD_SINGLE_HTML=true&& webpack --config webpack.config.cjs --mode production",
+    "build:tavern": "BUILD_SINGLE_HTML=true webpack --config webpack.config.cjs --mode production",
+    "build:tavern:win": "set BUILD_SINGLE_HTML=true&& webpack --config webpack.config.cjs --mode production",
     "build:cdn": "BUILD_CDN=true webpack --config webpack.config.cjs --mode production",
     "build:cdn:win": "set BUILD_CDN=true&& webpack --config webpack.config.cjs --mode production",
     "watch": "webpack --config webpack.config.cjs --mode development --watch",

@@ -1,0 +1,46 @@
+{
+  "name": "game-dev-tycoon",
+  "version": "1.0.0",
+  "description": "AI驱动的游戏开发商经营模拟器",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "build": "webpack --config webpack.config.cjs --mode production",
+    "build:single": "set BUILD_SINGLE_HTML=true&& webpack --config webpack.config.cjs --mode production",
+    "watch": "webpack --config webpack.config.cjs --mode development --watch",
+    "serve": "webpack-dev-server --config webpack.config.cjs --mode development",
+    "lint": "eslint . --ext .ts,.vue --fix",
+    "type-check": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "@vueuse/core": "^14.1.0",
+    "axios": "^1.11.0",
+    "chart.js": "^4.5.1",
+    "idb": "^8.0.3",
+    "lodash": "^4.17.21",
+    "pinia": "^3.0.4",
+    "vue": "^3.5.18",
+    "vue-router": "^4.6.4",
+    "vue-tsc": "^3.1.1"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.17.21",
+    "@types/node": "^25.0.3",
+    "@types/webpack-env": "^1.18.8",
+    "@vue/compiler-sfc": "^3.5.18",
+    "css-loader": "^7.1.2",
+    "html-inline-script-webpack-plugin": "^3.2.1",
+    "html-webpack-plugin": "^5.6.5",
+    "mini-css-extract-plugin": "^2.9.2",
+    "sass": "^1.87.0",
+    "sass-loader": "^16.0.6",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.4",
+    "typescript": "~5.8.0",
+    "vue-loader": "^17.4.2",
+    "webpack": "^5.99.8",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.2"
+  }
+}

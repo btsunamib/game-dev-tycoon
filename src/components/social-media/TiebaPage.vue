@@ -78,7 +78,7 @@
           </div>
 
           <!-- 展开的帖子详情 -->
-          <div class="post-detail" v-if="expandedPost === index">
+          <div class="post-detail" v-if="expandedPost === index" @click.stop>
             <!-- 1楼（楼主） -->
             <div class="floor-item floor-op">
               <div class="floor-header">

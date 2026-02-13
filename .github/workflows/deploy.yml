@@ -32,8 +32,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
-        run: npm run build
+      - name: Build (Single JS)
+        run: BUILD_SINGLE_JS=true npx webpack --config webpack.config.cjs --mode production
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

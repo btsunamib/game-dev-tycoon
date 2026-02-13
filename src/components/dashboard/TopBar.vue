@@ -50,17 +50,43 @@
       </div>
     </div>
 
-    <!-- 右侧：预留空间 -->
+    <!-- 右侧：全屏按钮 -->
     <div class="topbar-right">
+      <button class="topbar-btn" @click="toggleFullscreen" :title="isFullscreen ? '退出全屏' : '全屏显示'">
+        {{ isFullscreen ? '⛶' : '⛶' }}
+      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useGameStateStore } from '@/stores/gameStateStore';
 
 const gameState = useGameStateStore();
+
+/** 全屏状态 */
+const isFullscreen = ref(!!document.fullscreenElement);
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+function onFullscreenChange() {
+  isFullscreen.value = !!document.fullscreenElement;
+}
+
+onMounted(() => {
+  document.addEventListener('fullscreenchange', onFullscreenChange);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('fullscreenchange', onFullscreenChange);
+});
 
 /** 公司名称 */
 const companyName = computed(() => gameState.companyInfo?.名称 ?? '未命名公司');

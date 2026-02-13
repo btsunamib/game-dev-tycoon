@@ -8,20 +8,30 @@ const HtmlInlineScriptPlugin = require('html-inline-script-webpack-plugin');
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production';
   const isSingleHtml = process.env.BUILD_SINGLE_HTML === 'true';
+  const isCDN = process.env.BUILD_CDN === 'true';
 
-  // 单HTML模式下，CSS通过style-loader内联到JS中，再由HtmlInlineScriptPlugin内联到HTML
+  // CDN模式和单HTML模式下，CSS通过style-loader内联到JS中
   // 普通production模式下，CSS通过MiniCssExtractPlugin提取为独立文件
-  const cssLoader = isSingleHtml
+  const cssLoader = (isSingleHtml || isCDN)
     ? 'style-loader'
     : isProduction
       ? MiniCssExtractPlugin.loader
       : 'style-loader';
 
+  // CDN模式和单HTML模式下，资源内联为base64
+  const useInlineAssets = isSingleHtml || isCDN;
+
   return {
     entry: './src/main.ts',
     output: {
       path: path.resolve(__dirname, 'dist'),
-      filename: isSingleHtml ? 'js/[name].js' : isProduction ? 'js/[name].[contenthash:8].js' : 'js/[name].js',
+      filename: isCDN
+        ? 'GameDevTycoon.js'
+        : isSingleHtml
+          ? 'js/[name].js'
+          : isProduction
+            ? 'js/[name].[contenthash:8].js'
+            : 'js/[name].js',
       // 生产模式使用相对路径，兼容 GitHub Pages 子目录部署
       publicPath: isProduction ? './' : '/',
       clean: true,
@@ -32,8 +42,16 @@ module.exports = (env, argv) => {
         '@': path.resolve(__dirname, 'src'),
       },
     },
-    // 单HTML模式下禁用代码分割，确保只生成一个JS bundle
-    ...(isSingleHtml
+    // CDN模式：将Vue/VueRouter/Pinia设为外部依赖，从全局变量加载
+    ...(isCDN ? {
+      externals: {
+        'vue': 'Vue',
+        'vue-router': 'VueRouter',
+        'pinia': 'Pinia',
+      },
+    } : {}),
+    // CDN模式和单HTML模式下禁用代码分割，确保只生成一个JS bundle
+    ...((isSingleHtml || isCDN)
       ? {
           optimization: {
             splitChunks: false,
@@ -66,9 +84,9 @@ module.exports = (env, argv) => {
         },
         {
           test: /\.(png|jpe?g|gif|svg|webp|ico)$/i,
-          // 单HTML模式下将图片转为内联base64 data URL
-          type: isSingleHtml ? 'asset/inline' : 'asset/resource',
-          ...(isSingleHtml
+          // CDN/单HTML模式下将图片转为内联base64 data URL
+          type: useInlineAssets ? 'asset/inline' : 'asset/resource',
+          ...(useInlineAssets
             ? {}
             : {
                 generator: {
@@ -78,9 +96,9 @@ module.exports = (env, argv) => {
         },
         {
           test: /\.(woff2?|eot|ttf|otf)$/i,
-          // 单HTML模式下将字体转为内联base64 data URL
-          type: isSingleHtml ? 'asset/inline' : 'asset/resource',
-          ...(isSingleHtml
+          // CDN/单HTML模式下将字体转为内联base64 data URL
+          type: useInlineAssets ? 'asset/inline' : 'asset/resource',
+          ...(useInlineAssets
             ? {}
             : {
                 generator: {
@@ -93,9 +111,10 @@ module.exports = (env, argv) => {
     plugins: [
       new VueLoaderPlugin(),
       new HtmlWebpackPlugin({
-        template: './index.html',
+        // CDN模式使用专用模板，不注入JS（模板中已有硬编码的CDN和GitHub Pages链接）
+        template: isCDN ? './index.cdn.html' : './index.html',
         title: 'AI游戏开发商模拟器',
-        inject: 'body',
+        inject: isCDN ? false : 'body',
         // 单HTML模式下不压缩HTML中的内联脚本（避免潜在问题）
         ...(isSingleHtml
           ? {
@@ -120,8 +139,8 @@ module.exports = (env, argv) => {
       }),
       // 单HTML模式：使用HtmlInlineScriptPlugin将JS内联到HTML中
       ...(isSingleHtml ? [new HtmlInlineScriptPlugin()] : []),
-      // 普通production模式：��取CSS为独立文件
-      ...(isProduction && !isSingleHtml
+      // 普通production模式：提取CSS为独立文件（CDN和单HTML模式不需要）
+      ...(isProduction && !isSingleHtml && !isCDN
         ? [
             new MiniCssExtractPlugin({
               filename: 'css/[name].[contenthash:8].css',
@@ -135,13 +154,13 @@ module.exports = (env, argv) => {
       open: true,
       historyApiFallback: true,
     },
-    // 单HTML模式下不生成source map
-    devtool: isSingleHtml ? false : isProduction ? 'source-map' : 'eval-source-map',
+    // CDN/单HTML模式下不生成source map
+    devtool: (isSingleHtml || isCDN) ? false : isProduction ? 'source-map' : 'eval-source-map',
     performance: {
-      // 单HTML模式下放宽文件大小限制（因为所有内容都在一个文件中）
-      hints: isSingleHtml ? false : isProduction ? 'warning' : false,
-      maxAssetSize: isSingleHtml ? 10 * 1024 * 1024 : 512000,
-      maxEntrypointSize: isSingleHtml ? 10 * 1024 * 1024 : 512000,
+      // CDN/单HTML模式下放宽文件大小限制
+      hints: (isSingleHtml || isCDN) ? false : isProduction ? 'warning' : false,
+      maxAssetSize: (isSingleHtml || isCDN) ? 10 * 1024 * 1024 : 512000,
+      maxEntrypointSize: (isSingleHtml || isCDN) ? 10 * 1024 * 1024 : 512000,
     },
   };
 };
